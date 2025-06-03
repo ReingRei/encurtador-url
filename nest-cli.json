@@ -19,6 +19,24 @@
         "tsConfigPath": "apps/autenticacao/tsconfig.app.json"
       }
     },
+    "core-config": {
+      "type": "library",
+      "root": "libs/core-config",
+      "entryFile": "index",
+      "sourceRoot": "libs/core-config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core-config/tsconfig.lib.json"
+      }
+    },
+    "database": {
+      "type": "library",
+      "root": "libs/database",
+      "entryFile": "index",
+      "sourceRoot": "libs/database/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database/tsconfig.lib.json"
+      }
+    },
     "encurtador-url": {
       "type": "application",
       "root": "apps/encurtador-url",
