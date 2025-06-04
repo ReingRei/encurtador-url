@@ -38,8 +38,7 @@ describe('GerenciadorDeSenhaService', () => {
 
     it('deve lançar InternalServerErrorException se bcrypt.hash falhar', async () => {
       const senhaPlana = 'minhaSenha123';
-      (bcrypt.hash as jest.Mock).mockRejectedValue(Error('Erro no bcrypt'),
-      );
+      (bcrypt.hash as jest.Mock).mockRejectedValue(Error('Erro no bcrypt'));
 
       await expect(service.gerarHash(senhaPlana)).rejects.toThrow(
         InternalServerErrorException,

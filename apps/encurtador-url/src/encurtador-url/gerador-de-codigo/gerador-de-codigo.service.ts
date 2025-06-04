@@ -24,7 +24,7 @@ export class GeradorDeCodigoService {
    */
   async gerarCodigoUnico(): Promise<string> {
     for (let i = 0; i < this.MAX_TENTATIVAS_GERACAO; i++) {
-      const codigo = nanoid(this.TAMANHO_CODIGO); 
+      const codigo = nanoid(this.TAMANHO_CODIGO);
       this.logger.debug(`Tentativa ${i + 1}: Código gerado - ${codigo}`);
 
       const existente = await this.urlEncurtadaRepository.findOne({
@@ -43,7 +43,7 @@ export class GeradorDeCodigoService {
     this.logger.error(
       `Não foi possível gerar um código curto único após ${this.MAX_TENTATIVAS_GERACAO} tentativas.`,
     );
-    
+
     throw new Error(
       'Não foi possível gerar um código curto único. Por favor, tente novamente.',
     );

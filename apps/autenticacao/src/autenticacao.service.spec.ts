@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AutenticacaoService } from './autenticacao.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UsuarioEntity } from '@app/database/entities/usuario.entity';
-import { Repository } from 'typeorm';
 import { GerenciadorDeSenhaService } from './gerenciador-de-senha/gerenciador-de-senha.service';
 import {
   ConflictException,

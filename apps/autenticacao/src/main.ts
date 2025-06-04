@@ -9,7 +9,7 @@ async function bootstrap() {
   const logger = new Logger('BootstrapAutenticacao');
 
   const coreConfigService = app.get(CoreConfigService);
-  const port = coreConfigService.portAutenticacao; 
+  const port = coreConfigService.portAutenticacao;
   const nodeEnv = coreConfigService.nodeEnv;
   logger.log(`Ambiente de execução: ${nodeEnv}`);
   app.setGlobalPrefix('api');
@@ -23,7 +23,9 @@ async function bootstrap() {
 
   const configSwagger = new DocumentBuilder()
     .setTitle('API de Autenticação - Encurtador URL')
-    .setDescription('Documentação da API responsável pelo cadastro e login de usuários.')
+    .setDescription(
+      'Documentação da API responsável pelo cadastro e login de usuários.',
+    )
     .setVersion('1.0')
     .addTag('autenticacao', 'Operações relacionadas à autenticação de usuários')
     .addBearerAuth(
@@ -43,7 +45,8 @@ async function bootstrap() {
 
   await app.listen(port);
   logger.log(`Aplicação de Autenticação rodando na porta ${port}`);
-  logger.log(`Documentação da API disponível em http://localhost:${port}/api/docs`);
-
+  logger.log(
+    `Documentação da API disponível em http://localhost:${port}/api/docs`,
+  );
 }
-bootstrap();
+void bootstrap();

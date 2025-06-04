@@ -53,12 +53,12 @@ export class AutenticacaoService {
       this.logger.log(`Usuário criado com sucesso.: ${email}`);
 
       return {
-        mensagem: "Usuário criado com sucesso.",
+        mensagem: 'Usuário criado com sucesso.',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Falha ao salvar usuário no banco: ${email}`,
-        error.stack,
+        error?.['stack'],
       );
       throw new InternalServerErrorException('Erro ao registrar usuário.');
     }

@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsUrl, MaxLength } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
 
 export class EncurtarUrlDto {
   @ApiProperty({

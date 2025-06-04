@@ -3,7 +3,7 @@ import { EncurtadorUrlService } from './encurtador-url.service';
 import { CoreConfigService } from '@app/core-config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UrlEncurtadaEntity } from '@app/database/entities/url-encurtada.entity';
-import { Repository, IsNull } from 'typeorm'; // Importar IsNull
+import { IsNull } from 'typeorm';
 import { EncurtarUrlDto } from './dtos/encurtar-url.dto';
 import { UrlEncurtadaRespostaDto } from './dtos/url-encurtada-resposta.dto';
 import {
@@ -15,8 +15,6 @@ import { GeradorDeCodigoService } from './gerador-de-codigo/gerador-de-codigo.se
 
 describe('EncurtadorUrlService', () => {
   let service: EncurtadorUrlService;
-  let urlEncurtadaRepository: Repository<UrlEncurtadaEntity>;
-  let geradorDeCodigoService: GeradorDeCodigoService;
 
   const mockUrlEncurtadaRepository = {
     create: jest.fn(),
@@ -28,16 +26,10 @@ describe('EncurtadorUrlService', () => {
     gerarCodigoUnico: jest.fn(),
   };
 
-  // Este mock precisa fornecer a porta que seu serviço usa para construir a baseUrlAplicacao
   const mockCoreConfigService = {
     nodeEnv: 'test',
-    portEncurtador: 3002, // Fornecendo a porta esperada pelo serviço
+    portEncurtador: 3002,
   };
-
-  // beforeAll não é mais necessário para REDIRECTOR_BASE_URL se o serviço não o usa para esta URL
-  // beforeAll(() => {
-  //   process.env.REDIRECTOR_BASE_URL = REDIRECTOR_BASE_URL_MOCK;
-  // });
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -62,12 +54,6 @@ describe('EncurtadorUrlService', () => {
     }).compile();
 
     service = module.get<EncurtadorUrlService>(EncurtadorUrlService);
-    urlEncurtadaRepository = module.get<Repository<UrlEncurtadaEntity>>(
-      getRepositoryToken(UrlEncurtadaEntity),
-    );
-    geradorDeCodigoService = module.get<GeradorDeCodigoService>(
-      GeradorDeCodigoService,
-    );
   });
 
   it('deve estar definido', () => {
@@ -78,7 +64,6 @@ describe('EncurtadorUrlService', () => {
     let encurtarUrlDto: EncurtarUrlDto;
     const codigoGeradoMock = 'tst123';
     const usuarioIdMock = 'user-uuid-123';
-    // A URL base esperada, construída como o serviço faz
     const baseUrlEsperada = `http://localhost:${mockCoreConfigService.portEncurtador}`;
 
     beforeEach(() => {
@@ -103,14 +88,12 @@ describe('EncurtadorUrlService', () => {
       mockUrlEncurtadaRepository.create.mockReturnValue(urlSalvaMock);
       mockUrlEncurtadaRepository.save.mockResolvedValue(urlSalvaMock);
 
-      // Ajusta a expectativa para corresponder à lógica do serviço
       const resultadoEsperado: UrlEncurtadaRespostaDto = {
         codigoCurto: codigoGeradoMock,
         urlEncurtadaCompleta: `${baseUrlEsperada}/api/r/${codigoGeradoMock}`,
         urlOriginal: encurtarUrlDto.urlOriginal,
       };
 
-      // Teste para usuário anônimo
       let resultado = await service.encurtarUrl(encurtarUrlDto);
 
       expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledWith({
@@ -135,7 +118,6 @@ describe('EncurtadorUrlService', () => {
 
       jest.clearAllMocks();
 
-      // Teste para usuário autenticado
       const urlSalvaComUsuarioMock = {
         ...urlSalvaMock,
         usuarioId: usuarioIdMock,
@@ -160,7 +142,7 @@ describe('EncurtadorUrlService', () => {
       expect(mockUrlEncurtadaRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({ usuarioId: usuarioIdMock }),
       );
-      expect(resultado).toEqual(resultadoEsperado); // A URL completa esperada é a mesma
+      expect(resultado).toEqual(resultadoEsperado);
     });
 
     it('deve reutilizar uma URL encurtada existente para o mesmo usuário (ou anônimo)', async () => {
@@ -174,7 +156,6 @@ describe('EncurtadorUrlService', () => {
 
       mockUrlEncurtadaRepository.findOne.mockResolvedValue(urlExistenteMock);
 
-      // Ajusta a expectativa para corresponder à lógica do serviço
       const resultadoEsperado: UrlEncurtadaRespostaDto = {
         codigoCurto: urlExistenteMock.codigoCurto,
         urlEncurtadaCompleta: `${baseUrlEsperada}/${urlExistenteMock.codigoCurto}`,
@@ -206,7 +187,7 @@ describe('EncurtadorUrlService', () => {
       mockUrlEncurtadaRepository.findOne.mockResolvedValue(
         urlExistenteComUsuarioMock,
       );
-      // Ajusta a expectativa para corresponder à lógica do serviço
+
       const resultadoEsperadoComUsuario: UrlEncurtadaRespostaDto = {
         codigoCurto: urlExistenteComUsuarioMock.codigoCurto,
         urlEncurtadaCompleta: `${baseUrlEsperada}/${urlExistenteComUsuarioMock.codigoCurto}`,

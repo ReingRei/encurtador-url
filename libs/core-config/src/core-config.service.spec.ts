@@ -39,7 +39,10 @@ describe('CoreConfigService', () => {
       const nodeEnv = service.nodeEnv;
 
       expect(nodeEnv).toBe(mockEnv);
-      expect(mockNestConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+      expect(mockNestConfigService.get).toHaveBeenCalledWith(
+        'NODE_ENV',
+        'development',
+      );
     });
   });
 
@@ -78,17 +81,22 @@ describe('CoreConfigService', () => {
 
   describe('ConfiguracaoJWT', () => {
     it('deve retornar JWT_SECRET usando getOrThrow', () => {
-        const mockSecret = 'segredo_de_teste';
-        mockNestConfigService.getOrThrow.mockReturnValueOnce(mockSecret);
-        expect(service.jwtSecret).toBe(mockSecret);
-        expect(mockNestConfigService.getOrThrow).toHaveBeenCalledWith('JWT_SECRET');
+      const mockSecret = 'segredo_de_teste';
+      mockNestConfigService.getOrThrow.mockReturnValueOnce(mockSecret);
+      expect(service.jwtSecret).toBe(mockSecret);
+      expect(mockNestConfigService.getOrThrow).toHaveBeenCalledWith(
+        'JWT_SECRET',
+      );
     });
 
     it('deve retornar JWT_EXPIRATION_TIME ou o valor padrão', () => {
-        const mockExpTime = '1h_teste';
-        mockNestConfigService.get.mockReturnValueOnce(mockExpTime);
-        expect(service.jwtExpirationTime).toBe(mockExpTime);
-        expect(mockNestConfigService.get).toHaveBeenCalledWith('JWT_EXPIRATION_TIME', '3600s');
+      const mockExpTime = '1h_teste';
+      mockNestConfigService.get.mockReturnValueOnce(mockExpTime);
+      expect(service.jwtExpirationTime).toBe(mockExpTime);
+      expect(mockNestConfigService.get).toHaveBeenCalledWith(
+        'JWT_EXPIRATION_TIME',
+        '3600s',
+      );
     });
   });
 });

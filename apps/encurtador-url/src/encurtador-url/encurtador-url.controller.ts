@@ -2,9 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Get,
-  Param,
-  Res,
   HttpCode,
   HttpStatus,
   Logger,
@@ -50,7 +47,9 @@ export class EncurtadorUrlController {
     status: HttpStatus.CONFLICT,
     description: 'Conflito ao gerar o código curto (raro, tente novamente).',
   })
-  @ApiTooManyRequestsResponse({ description: 'Muitas tentativas. Tente novamente mais tarde.'})
+  @ApiTooManyRequestsResponse({
+    description: 'Muitas tentativas. Tente novamente mais tarde.',
+  })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Erro interno do servidor ao processar a solicitação.',

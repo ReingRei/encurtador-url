@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GeradorDeCodigoService } from './gerador-de-codigo.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UrlEncurtadaEntity } from '@app/database/entities/url-encurtada.entity';
-import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 
@@ -12,7 +11,6 @@ jest.mock('nanoid', () => ({
 
 describe('GeradorDeCodigoService', () => {
   let service: GeradorDeCodigoService;
-  let urlEncurtadaRepository: Repository<UrlEncurtadaEntity>;
 
   const mockUrlEncurtadaRepository = {
     findOne: jest.fn(),
@@ -33,9 +31,6 @@ describe('GeradorDeCodigoService', () => {
     }).compile();
 
     service = module.get<GeradorDeCodigoService>(GeradorDeCodigoService);
-    urlEncurtadaRepository = module.get<Repository<UrlEncurtadaEntity>>(
-      getRepositoryToken(UrlEncurtadaEntity),
-    );
   });
 
   it('deve estar definido', () => {
@@ -69,8 +64,14 @@ describe('GeradorDeCodigoService', () => {
         .mockReturnValueOnce(codigoUnico);
 
       mockUrlEncurtadaRepository.findOne
-        .mockResolvedValueOnce({ id: 'id1', codigoCurto: codigoColisao1 } as UrlEncurtadaEntity)
-        .mockResolvedValueOnce({ id: 'id2', codigoCurto: codigoColisao2 } as UrlEncurtadaEntity)
+        .mockResolvedValueOnce({
+          id: 'id1',
+          codigoCurto: codigoColisao1,
+        } as UrlEncurtadaEntity)
+        .mockResolvedValueOnce({
+          id: 'id2',
+          codigoCurto: codigoColisao2,
+        } as UrlEncurtadaEntity)
         .mockResolvedValueOnce(null);
 
       const resultado = await service.gerarCodigoUnico();
@@ -92,23 +93,28 @@ describe('GeradorDeCodigoService', () => {
     it('deve lançar um erro se não conseguir gerar um código único após o número máximo de tentativas', async () => {
       const codigoColisao = 'colideX';
       (nanoid as jest.Mock).mockReturnValue(codigoColisao);
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue({ id: 'idX', codigoCurto: codigoColisao } as UrlEncurtadaEntity);
+      mockUrlEncurtadaRepository.findOne.mockResolvedValue({
+        id: 'idX',
+        codigoCurto: codigoColisao,
+      } as UrlEncurtadaEntity);
 
       await expect(service.gerarCodigoUnico()).rejects.toThrow(
         'Não foi possível gerar um código curto único. Por favor, tente novamente.',
       );
 
       expect(nanoid).toHaveBeenCalledTimes(service['MAX_TENTATIVAS_GERACAO']);
-      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledTimes(service['MAX_TENTATIVAS_GERACAO']);
+      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledTimes(
+        service['MAX_TENTATIVAS_GERACAO'],
+      );
     });
 
     it('deve usar o TAMANHO_CODIGO definido no serviço', async () => {
-        const codigoGerado = 'tstcod';
-        (nanoid as jest.Mock).mockReturnValue(codigoGerado);
-        mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-        
-        await service.gerarCodigoUnico();
-        expect(nanoid).toHaveBeenCalledWith(service['TAMANHO_CODIGO']);
+      const codigoGerado = 'tstcod';
+      (nanoid as jest.Mock).mockReturnValue(codigoGerado);
+      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
+
+      await service.gerarCodigoUnico();
+      expect(nanoid).toHaveBeenCalledWith(service['TAMANHO_CODIGO']);
     });
   });
 });

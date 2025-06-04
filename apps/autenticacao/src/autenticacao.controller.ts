@@ -1,26 +1,16 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Logger,
   Post,
-  Request,
-  UseGuards,
 } from '@nestjs/common';
 import { AutenticacaoService } from './autenticacao.service';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginUsuarioDto, RegistrarUsuarioDto } from './dtos';
 import { LoginResponseDto } from './dtos/login-response.dto';
-import { ISessao, MensagemRespostaDto } from '@app/common';
-import { AuthGuard } from '@nestjs/passport';
+import { MensagemRespostaDto } from '@app/common';
 
 @Controller()
 export class AutenticacaoController {
@@ -85,21 +75,5 @@ export class AutenticacaoController {
       `Recebida requisição de login para o e-mail: ${loginUsuarioDto.email}`,
     );
     return this.autenticacaoService.login(loginUsuarioDto);
-  }
-
-  @Get('perfil')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Obter dados do perfil do usuário autenticado.' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Dados do perfil retornados com sucesso.',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Não autorizado. Token JWT inválido ou ausente.',
-  })
-  async obterPerfil(@Request() req): Promise<any> {
-    this.logger.log(`Usuário ${req.user.email} acessando perfil.`);
-    return req.user;
   }
 }

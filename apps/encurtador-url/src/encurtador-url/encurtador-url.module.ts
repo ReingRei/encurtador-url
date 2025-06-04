@@ -7,10 +7,7 @@ import { UrlEncurtadaEntity } from '@app/database/entities';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UrlEncurtadaEntity])],
-  providers: [
-    EncurtadorUrlService,
-    GeradorDeCodigoService
-  ],
-  controllers: [EncurtadorUrlController]
+  providers: [EncurtadorUrlService, GeradorDeCodigoService],
+  controllers: [EncurtadorUrlController],
 })
 export class EncurtadorUrlModule {}

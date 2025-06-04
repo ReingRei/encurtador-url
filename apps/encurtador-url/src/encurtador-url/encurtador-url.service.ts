@@ -2,7 +2,6 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
-  NotFoundException,
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,9 +29,7 @@ export class EncurtadorUrlService {
       nodeEnv === 'production'
         ? this.coreConfigService.baseUrlRedirecionar
         : `http://localhost:${port}`;
-    this.logger.log(
-      `Base URL para URLs encurtadas: ${this.baseUrlAplicacao}/`,
-    );
+    this.logger.log(`Base URL para URLs encurtadas: ${this.baseUrlAplicacao}/`);
   }
 
   async encurtarUrl(
@@ -65,10 +62,10 @@ export class EncurtadorUrlService {
     let codigoCurto: string;
     try {
       codigoCurto = await this.geradorDeCodigoService.gerarCodigoUnico();
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Falha crítica ao tentar gerar código único para ${urlOriginal}: ${error.message}`,
-        error.stack,
+        `Falha crítica ao tentar gerar código único para ${urlOriginal}: ${error?.['message']}`,
+        error?.['stack'],
       );
       throw new InternalServerErrorException(
         'Não foi possível processar o encurtamento da URL no momento devido a um problema na geração de código.',
@@ -95,11 +92,14 @@ export class EncurtadorUrlService {
         urlEncurtadaCompleta: urlEncurtadaCompleta,
         urlOriginal: urlSalva.urlOriginal,
       };
-    } catch (error) {
-      if (error.code === '23505' && error.detail?.includes('(codigo_curto)')) {
+    } catch (error: unknown) {
+      if (
+        error?.['code'] === '23505' &&
+        (error?.['detail'] as string[]).includes('(codigo_curto)')
+      ) {
         this.logger.error(
-          `Erro de constraint UNIQUE ao salvar URL encurtada (colisão tardia de código): ${codigoCurto}. Detalhe: ${error.detail}`,
-          error.stack,
+          `Erro de constraint UNIQUE ao salvar URL encurtada (colisão tardia de código): ${codigoCurto}. Detalhe: ${error?.['detail']}`,
+          error?.['stack'],
         );
         throw new ConflictException(
           'Ocorreu um conflito ao tentar gerar o código para sua URL. Por favor, tente novamente.',
@@ -107,10 +107,9 @@ export class EncurtadorUrlService {
       }
       this.logger.error(
         `Falha ao salvar URL encurtada no banco para ${urlOriginal} com código ${codigoCurto}`,
-        error.stack,
+        error?.['stack'],
       );
       throw new InternalServerErrorException('Erro ao salvar a URL encurtada.');
     }
   }
-
 }

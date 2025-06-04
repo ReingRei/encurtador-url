@@ -3,7 +3,7 @@ import { EncurtadorUrlController } from './encurtador-url.controller';
 import { EncurtadorUrlService } from './encurtador-url.service';
 import { EncurtarUrlDto } from './dtos/encurtar-url.dto';
 import { UrlEncurtadaRespostaDto } from './dtos/url-encurtada-resposta.dto';
-import { Logger, ConflictException } from '@nestjs/common'; 
+import { Logger, ConflictException } from '@nestjs/common';
 
 describe('EncurtadorUrlController', () => {
   let controller: EncurtadorUrlController;
@@ -47,15 +47,16 @@ describe('EncurtadorUrlController', () => {
 
       const resultado = await controller.encurtar(dto);
 
-      expect(service.encurtarUrl).toHaveBeenCalledWith(dto);
+      expect(service?.['encurtarUrl']).toHaveBeenCalledWith(dto);
       expect(resultado).toEqual(resultadoEsperado);
     });
 
     it('deve repassar ConflictException do serviço', async () => {
-        const dto: EncurtarUrlDto = { urlOriginal: 'https://google.com' };
-        mockEncurtadorUrlService.encurtarUrl.mockRejectedValue(new ConflictException('Conflito'));
-        await expect(controller.encurtar(dto)).rejects.toThrow(ConflictException);
+      const dto: EncurtarUrlDto = { urlOriginal: 'https://google.com' };
+      mockEncurtadorUrlService.encurtarUrl.mockRejectedValue(
+        new ConflictException('Conflito'),
+      );
+      await expect(controller.encurtar(dto)).rejects.toThrow(ConflictException);
     });
   });
-
 });
