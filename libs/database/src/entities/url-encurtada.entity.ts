@@ -16,6 +16,9 @@ export class UrlEncurtadaEntity {
   @Column({ name: 'cliques', type: 'integer', default: 0, nullable: false })
   cliques: number;
 
+  @Column({ name: 'usuario_id', type: 'varchar', nullable: true })
+  usuarioId: string;
+
   @CreateDateColumn({ name: 'data_criacao', type: 'timestamp with time zone' })
   dataCriacao: Date;
 
