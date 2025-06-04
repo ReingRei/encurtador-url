@@ -34,7 +34,10 @@ export class CoreConfigService {
     return this.nodeEnv !== 'production';
   }
 
-  get dbLogging(): boolean | 'all' | ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log')[] {
+  get dbLogging():
+    | boolean
+    | 'all'
+    | ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log')[] {
     return this.nodeEnv !== 'production' ? 'all' : ['error'];
   }
 
@@ -54,5 +57,23 @@ export class CoreConfigService {
 
   get portEncurtador(): number {
     return this.nestConfigService.get<number>('PORT_ENCURTADOR', 3002);
+  }
+
+  get portRedirecionar(): number {
+    return this.nestConfigService.get<number>('PORT_REDIRECIONAR', 3002);
+  }
+
+  get baseUrlEncurtador(): string {
+    return this.nestConfigService.get<string>(
+      'APP_BASE_URL_ENCURTADOR',
+      'localhost:3002',
+    );
+  }
+
+  get baseUrlRedirecionar(): string {
+    return this.nestConfigService.get<string>(
+      'APP_BASE_URL_REDIRECIONAR',
+      'localhost:3003',
+    );
   }
 }
