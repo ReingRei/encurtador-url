@@ -12,10 +12,105 @@ services:
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # --- Serviço da Aplicação: autenticacao ---
+  autenticacao-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monorepo_autenticacao_app_dev
+    restart: unless-stopped
+    ports:
+      # Usa a variável PORT_AUTENTICACAO do seu .env para a porta do HOST
+      # Mapeia para a porta 3000 DENTRO do container
+      - "${PORT_AUTENTICACAO:-3001}:3001"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development} # Usa NODE_ENV do .env, com fallback
+      PORT: 3001 # Porta INTERNA que o app NestJS (autenticacao) vai escutar
+      DB_HOST: postgres_db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PORT: ${DB_PORT:-5432} # Usa DB_PORT do .env para a porta interna do DB que o app conecta
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+      # Suas outras variáveis de ambiente como APP_BASE_URL_* podem ser passadas aqui se o app as usar diretamente
+      APP_BASE_URL_ENCURTADOR: ${APP_BASE_URL_ENCURTADOR}
+      APP_BASE_URL_REDIRECIONAR: ${APP_BASE_URL_REDIRECIONAR}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
+    command: npm run start:dev:autenticacao
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+
+  # --- Serviço da Aplicação: encurtador-url ---
+  encurtador-url-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monorepo_encurtador_url_app_dev
+    restart: unless-stopped
+    ports:
+      # Usa a variável PORT_ENCURTADOR do seu .env para a porta do HOST
+      - "${PORT_ENCURTADOR:-3002}:3002"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3002 # Porta INTERNA
+      DB_HOST: postgres_db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PORT: ${DB_PORT:-5432}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+      APP_BASE_URL_ENCURTADOR: ${APP_BASE_URL_ENCURTADOR}
+      APP_BASE_URL_REDIRECIONAR: ${APP_BASE_URL_REDIRECIONAR}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
+    command: npm run start:dev:encurtador-url
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+
+  # --- Serviço da Aplicação: redirecionar ---
+  redirecionar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monorepo_redirecionar_app_dev
+    restart: unless-stopped
+    ports:
+      # Usa a variável PORT_REDIRECIONAR do seu .env para a porta do HOST
+      - "${PORT_REDIRECIONAR:-3003}:3003"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3003 # Porta INTERNA
+      DB_HOST: postgres_db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PORT: ${DB_PORT:-5432}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+      APP_BASE_URL_ENCURTADOR: ${APP_BASE_URL_ENCURTADOR}
+      APP_BASE_URL_REDIRECIONAR: ${APP_BASE_URL_REDIRECIONAR}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
+    command: npm run start:dev:redirecionar
+    depends_on:
+      postgres_db:
+        condition: service_healthy
 
 volumes:
   postgres_dev_data:

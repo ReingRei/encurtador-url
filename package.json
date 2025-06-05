@@ -17,7 +17,19 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/encurtador-url/test/jest-e2e.json"
+    "test:e2e": "jest --config ./apps/encurtador-url/test/jest-e2e.json",
+
+    "start:dev:autenticacao": "nest start autenticacao --watch",
+    "start:dev:encurtador-url": "nest start encurtador-url --watch",
+    "start:dev:redirecionar": "nest start redirecionar --watch",
+
+    "build:autenticacao": "nest build autenticacao",
+    "build:encurtador-url": "nest build encurtador-url",
+    "build:redirecionar": "nest build redirecionar",
+    
+    "start:prod:autenticacao": "node dist/apps/autenticacao/main",
+    "start:prod:encurtador-url": "node dist/apps/encurtador-url/main",
+    "start:prod:redirecionar": "node dist/apps/redirecionar/main"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

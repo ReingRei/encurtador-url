@@ -38,7 +38,7 @@ export class CoreConfigService {
     | boolean
     | 'all'
     | ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log')[] {
-    return this.nodeEnv !== 'production' ? 'all' : ['error'];
+    return ['error'];
   }
 
   // Configurações de JWT

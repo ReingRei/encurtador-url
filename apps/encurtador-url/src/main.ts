@@ -43,7 +43,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Aplicação Encurtador de URL rodando na porta ${port}`);
   logger.log(
     `Documentação da API disponível em http://localhost:${port}/api/docs`,
