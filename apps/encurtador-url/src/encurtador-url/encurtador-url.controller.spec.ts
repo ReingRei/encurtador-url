@@ -90,12 +90,6 @@ describe('EncurtadorUrlController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('recupera', () => {
-    it('deve retornar "ok"', () => {
-      expect(controller.recupera()).toBe('ok');
-    });
-  });
-
   describe('encurtar', () => {
     const encurtarDto: EncurtarUrlDto = {
       urlOriginal: 'https://muitourllonga.com',

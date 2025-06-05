@@ -55,10 +55,6 @@ export class EncurtadorUrlController {
     private readonly encurtadorUrlService: EncurtadorUrlService,
     private readonly gerenciadorMinhasUrlsService: GerenciadorMinhasUrlsService,
   ) {}
-  @Get()
-  recupera() {
-    return 'ok';
-  }
 
   @Post('encurtador')
   @UseGuards(OptionalAuthGuard)

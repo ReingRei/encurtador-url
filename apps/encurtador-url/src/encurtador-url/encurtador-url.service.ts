@@ -22,7 +22,7 @@ export class EncurtadorUrlService {
     private readonly geradorDeCodigoService: GeradorDeCodigoService,
     private readonly coreConfigService: CoreConfigService,
   ) {
-    const port = this.coreConfigService.portEncurtador;
+    const port = this.coreConfigService.portRedirecionar;
     const nodeEnv = this.coreConfigService.nodeEnv;
 
     this.baseUrlAplicacao =

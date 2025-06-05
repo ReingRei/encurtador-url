@@ -21,7 +21,7 @@ describe('EncurtadorUrlService', () => {
 
   const mockCoreConfigService = {
     nodeEnv: 'development',
-    portEncurtador: 3003,
+    portRedirecionar: 3003,
     baseUrlRedirecionar: 'https://url.curta.com',
   };
 
@@ -71,7 +71,7 @@ describe('EncurtadorUrlService', () => {
     const expectedBaseUrl =
       mockCoreConfigService.nodeEnv === 'production'
         ? mockCoreConfigService.baseUrlRedirecionar
-        : `http://localhost:${mockCoreConfigService.portEncurtador}`;
+        : `http://localhost:${mockCoreConfigService.portRedirecionar}`;
 
     beforeEach(() => {
       encurtarUrlDto = {

@@ -54,6 +54,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/encurtador-url/tsconfig.app.json"
       }
+    },
+    "redirecionar": {
+      "type": "application",
+      "root": "apps/redirecionar",
+      "entryFile": "main",
+      "sourceRoot": "apps/redirecionar/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/redirecionar/tsconfig.app.json"
+      }
     }
   }
 }
