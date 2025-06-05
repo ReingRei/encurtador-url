@@ -76,9 +76,12 @@ export class EncurtadorUrlService {
       urlOriginal,
       codigoCurto,
       cliques: 0,
-      usuarioId: usuarioId || undefined,
+      usuarioId: undefined,
     });
 
+    if (usuarioId) {
+      novaUrlEncurtada.usuarioId = usuarioId;
+    }
     try {
       const urlSalva = await this.urlEncurtadaRepository.save(novaUrlEncurtada);
       this.logger.log(

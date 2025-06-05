@@ -33,7 +33,7 @@ export class UrlEncurtadaEntity {
   cliques: number;
 
   @Column({ name: 'usuario_id', type: 'varchar', nullable: true })
-  usuarioId: string;
+  usuarioId: string | null;
 
   @CreateDateColumn({ name: 'data_criacao', type: 'timestamp with time zone' })
   dataCriacao: Date;

@@ -1,38 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EncurtadorUrlService } from './encurtador-url.service';
+import { GeradorDeCodigoService } from './gerador-de-codigo/gerador-de-codigo.service';
 import { CoreConfigService } from '@app/core-config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UrlEncurtadaEntity } from '@app/database/entities/url-encurtada.entity';
 import { IsNull } from 'typeorm';
-import { EncurtarUrlDto } from './dtos/encurtar-url.dto';
-import { UrlEncurtadaRespostaDto } from './dtos/url-encurtada-resposta.dto';
+import { EncurtarUrlDto } from './dtos';
 import {
   ConflictException,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { GeradorDeCodigoService } from './gerador-de-codigo/gerador-de-codigo.service';
 
 describe('EncurtadorUrlService', () => {
   let service: EncurtadorUrlService;
-
-  const mockUrlEncurtadaRepository = {
-    create: jest.fn(),
-    save: jest.fn(),
-    findOne: jest.fn(),
-  };
-
-  const mockGeradorDeCodigoService = {
-    gerarCodigoUnico: jest.fn(),
-  };
+  let mockUrlEncurtadaRepository_findOne: jest.Mock;
+  let mockUrlEncurtadaRepository_create: jest.Mock;
+  let mockUrlEncurtadaRepository_save: jest.Mock;
+  let mockGeradorDeCodigoService_gerarCodigoUnico: jest.Mock;
 
   const mockCoreConfigService = {
-    nodeEnv: 'test',
-    portEncurtador: 3002,
+    nodeEnv: 'development',
+    portEncurtador: 3003,
+    baseUrlRedirecionar: 'https://url.curta.com',
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    mockUrlEncurtadaRepository_findOne = jest.fn();
+    mockUrlEncurtadaRepository_create = jest.fn();
+    mockUrlEncurtadaRepository_save = jest.fn();
+    mockGeradorDeCodigoService_gerarCodigoUnico = jest.fn();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -40,11 +37,17 @@ describe('EncurtadorUrlService', () => {
         Logger,
         {
           provide: getRepositoryToken(UrlEncurtadaEntity),
-          useValue: mockUrlEncurtadaRepository,
+          useValue: {
+            findOne: mockUrlEncurtadaRepository_findOne,
+            create: mockUrlEncurtadaRepository_create,
+            save: mockUrlEncurtadaRepository_save,
+          },
         },
         {
           provide: GeradorDeCodigoService,
-          useValue: mockGeradorDeCodigoService,
+          useValue: {
+            gerarCodigoUnico: mockGeradorDeCodigoService_gerarCodigoUnico,
+          },
         },
         {
           provide: CoreConfigService,
@@ -62,194 +65,212 @@ describe('EncurtadorUrlService', () => {
 
   describe('encurtarUrl', () => {
     let encurtarUrlDto: EncurtarUrlDto;
-    const codigoGeradoMock = 'tst123';
-    const usuarioIdMock = 'user-uuid-123';
-    const baseUrlEsperada = `http://localhost:${mockCoreConfigService.portEncurtador}`;
+    const codigoGeradoMock = 'genCod1';
+    const usuarioIdMock = 'user-abc-123';
+
+    const expectedBaseUrl =
+      mockCoreConfigService.nodeEnv === 'production'
+        ? mockCoreConfigService.baseUrlRedirecionar
+        : `http://localhost:${mockCoreConfigService.portEncurtador}`;
 
     beforeEach(() => {
       encurtarUrlDto = {
-        urlOriginal: 'https://www.muitourllonga.com/caminho/para/recurso',
+        urlOriginal: 'https://www.exemplolongo.com/caminho/muito/grande',
       };
     });
 
-    it('deve criar uma nova URL encurtada se ela não existir para o usuário (ou anônimo)', async () => {
-      const urlSalvaMock = {
-        id: 'uuid-teste',
+    it('deve criar uma nova URL encurtada para utilizador anônimo se não existir', async () => {
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(null);
+      mockGeradorDeCodigoService_gerarCodigoUnico.mockResolvedValue(
+        codigoGeradoMock,
+      );
+
+      const objetoCriadoSemUsuario = {
         urlOriginal: encurtarUrlDto.urlOriginal,
         codigoCurto: codigoGeradoMock,
         cliques: 0,
         usuarioId: null,
-      } as unknown as UrlEncurtadaEntity;
-
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-      mockGeradorDeCodigoService.gerarCodigoUnico.mockResolvedValue(
-        codigoGeradoMock,
-      );
-      mockUrlEncurtadaRepository.create.mockReturnValue(urlSalvaMock);
-      mockUrlEncurtadaRepository.save.mockResolvedValue(urlSalvaMock);
-
-      const resultadoEsperado: UrlEncurtadaRespostaDto = {
-        codigoCurto: codigoGeradoMock,
-        urlEncurtadaCompleta: `${baseUrlEsperada}/api/r/${codigoGeradoMock}`,
-        urlOriginal: encurtarUrlDto.urlOriginal,
       };
+      mockUrlEncurtadaRepository_create.mockReturnValue(
+        objetoCriadoSemUsuario as UrlEncurtadaEntity,
+      );
+      mockUrlEncurtadaRepository_save.mockResolvedValue({
+        ...objetoCriadoSemUsuario,
+        id: 'uuid1',
+      } as UrlEncurtadaEntity);
 
-      let resultado = await service.encurtarUrl(encurtarUrlDto);
+      const resultado = await service.encurtarUrl(encurtarUrlDto);
 
-      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledWith({
-        where: {
-          urlOriginal: encurtarUrlDto.urlOriginal,
-          usuarioId: IsNull(),
-        },
+      expect(mockUrlEncurtadaRepository_findOne).toHaveBeenCalledWith({
+        where: { urlOriginal: encurtarUrlDto.urlOriginal, usuarioId: IsNull() },
       });
-      expect(mockGeradorDeCodigoService.gerarCodigoUnico).toHaveBeenCalledTimes(
+      expect(mockGeradorDeCodigoService_gerarCodigoUnico).toHaveBeenCalledTimes(
         1,
       );
-      expect(mockUrlEncurtadaRepository.create).toHaveBeenCalledWith({
+      expect(mockUrlEncurtadaRepository_create).toHaveBeenCalledWith({
         urlOriginal: encurtarUrlDto.urlOriginal,
         codigoCurto: codigoGeradoMock,
         cliques: 0,
         usuarioId: undefined,
       });
-      expect(mockUrlEncurtadaRepository.save).toHaveBeenCalledWith(
-        urlSalvaMock,
+      expect(mockUrlEncurtadaRepository_save).toHaveBeenCalledWith(
+        objetoCriadoSemUsuario,
       );
-      expect(resultado).toEqual(resultadoEsperado);
-
-      jest.clearAllMocks();
-
-      const urlSalvaComUsuarioMock = {
-        ...urlSalvaMock,
-        usuarioId: usuarioIdMock,
-      } as UrlEncurtadaEntity;
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-      mockGeradorDeCodigoService.gerarCodigoUnico.mockResolvedValue(
-        codigoGeradoMock,
-      );
-      mockUrlEncurtadaRepository.create.mockReturnValue(urlSalvaComUsuarioMock);
-      mockUrlEncurtadaRepository.save.mockResolvedValue(urlSalvaComUsuarioMock);
-
-      resultado = await service.encurtarUrl(encurtarUrlDto, usuarioIdMock);
-      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledWith({
-        where: {
-          urlOriginal: encurtarUrlDto.urlOriginal,
-          usuarioId: usuarioIdMock,
-        },
+      expect(resultado).toEqual({
+        codigoCurto: codigoGeradoMock,
+        urlEncurtadaCompleta: `${expectedBaseUrl}/api/r/${codigoGeradoMock}`,
+        urlOriginal: encurtarUrlDto.urlOriginal,
       });
-      expect(mockGeradorDeCodigoService.gerarCodigoUnico).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockUrlEncurtadaRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ usuarioId: usuarioIdMock }),
-      );
-      expect(resultado).toEqual(resultadoEsperado);
     });
 
-    it('deve reutilizar uma URL encurtada existente para o mesmo usuário (ou anônimo)', async () => {
-      const urlExistenteMock = {
-        id: 'uuid-existente',
-        urlOriginal: encurtarUrlDto.urlOriginal,
-        codigoCurto: 'exist1',
-        cliques: 10,
-        usuarioId: null,
-      } as unknown as UrlEncurtadaEntity;
-
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(urlExistenteMock);
-
-      const resultadoEsperado: UrlEncurtadaRespostaDto = {
-        codigoCurto: urlExistenteMock.codigoCurto,
-        urlEncurtadaCompleta: `${baseUrlEsperada}/${urlExistenteMock.codigoCurto}`,
-        urlOriginal: urlExistenteMock.urlOriginal,
-      };
-
-      const resultadoAnonimo = await service.encurtarUrl(encurtarUrlDto);
-
-      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledWith({
-        where: {
-          urlOriginal: encurtarUrlDto.urlOriginal,
-          usuarioId: IsNull(),
-        },
-      });
-      expect(
-        mockGeradorDeCodigoService.gerarCodigoUnico,
-      ).not.toHaveBeenCalled();
-      expect(mockUrlEncurtadaRepository.create).not.toHaveBeenCalled();
-      expect(mockUrlEncurtadaRepository.save).not.toHaveBeenCalled();
-      expect(resultadoAnonimo).toEqual(resultadoEsperado);
-
-      jest.clearAllMocks();
-
-      const urlExistenteComUsuarioMock = {
-        ...urlExistenteMock,
-        usuarioId: usuarioIdMock,
-        codigoCurto: 'exist2',
-      };
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(
-        urlExistenteComUsuarioMock,
+    it('deve criar uma nova URL encurtada para utilizador autenticado se não existir', async () => {
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(null);
+      mockGeradorDeCodigoService_gerarCodigoUnico.mockResolvedValue(
+        codigoGeradoMock,
       );
 
-      const resultadoEsperadoComUsuario: UrlEncurtadaRespostaDto = {
-        codigoCurto: urlExistenteComUsuarioMock.codigoCurto,
-        urlEncurtadaCompleta: `${baseUrlEsperada}/${urlExistenteComUsuarioMock.codigoCurto}`,
-        urlOriginal: urlExistenteComUsuarioMock.urlOriginal,
+      const objetoCriadoSemUsuario = {
+        urlOriginal: encurtarUrlDto.urlOriginal,
+        codigoCurto: codigoGeradoMock,
+        cliques: 0,
+        usuarioId: null,
       };
+      const objetoParaSalvarComUsuario = {
+        ...objetoCriadoSemUsuario,
+        usuarioId: usuarioIdMock,
+      };
+      mockUrlEncurtadaRepository_create.mockReturnValue(
+        objetoCriadoSemUsuario as UrlEncurtadaEntity,
+      );
+      mockUrlEncurtadaRepository_save.mockResolvedValue({
+        ...objetoParaSalvarComUsuario,
+        id: 'uuid2',
+      } as UrlEncurtadaEntity);
 
-      const resultadoAutenticado = await service.encurtarUrl(
+      const resultado = await service.encurtarUrl(
         encurtarUrlDto,
         usuarioIdMock,
       );
-      expect(mockUrlEncurtadaRepository.findOne).toHaveBeenCalledWith({
+
+      expect(mockUrlEncurtadaRepository_findOne).toHaveBeenCalledWith({
+        where: {
+          urlOriginal: encurtarUrlDto.urlOriginal,
+          usuarioId: usuarioIdMock,
+        },
+      });
+      expect(mockGeradorDeCodigoService_gerarCodigoUnico).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockUrlEncurtadaRepository_create).toHaveBeenCalledWith({
+        urlOriginal: encurtarUrlDto.urlOriginal,
+        codigoCurto: codigoGeradoMock,
+        cliques: 0,
+        usuarioId: undefined,
+      });
+      expect(mockUrlEncurtadaRepository_save).toHaveBeenCalledWith(
+        expect.objectContaining(objetoParaSalvarComUsuario),
+      );
+      expect(resultado).toEqual({
+        codigoCurto: codigoGeradoMock,
+        urlEncurtadaCompleta: `${expectedBaseUrl}/api/r/${codigoGeradoMock}`,
+        urlOriginal: encurtarUrlDto.urlOriginal,
+      });
+    });
+
+    it('deve reutilizar URL existente para utilizador anônimo', async () => {
+      const urlExistente = {
+        id: 'uuid-existente-anon',
+        urlOriginal: encurtarUrlDto.urlOriginal,
+        codigoCurto: 'jaExst',
+        cliques: 10,
+        usuarioId: null,
+      } as UrlEncurtadaEntity;
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(urlExistente);
+
+      const resultado = await service.encurtarUrl(encurtarUrlDto);
+
+      expect(mockUrlEncurtadaRepository_findOne).toHaveBeenCalledWith({
+        where: { urlOriginal: encurtarUrlDto.urlOriginal, usuarioId: IsNull() },
+      });
+      expect(
+        mockGeradorDeCodigoService_gerarCodigoUnico,
+      ).not.toHaveBeenCalled();
+      expect(mockUrlEncurtadaRepository_create).not.toHaveBeenCalled();
+      expect(mockUrlEncurtadaRepository_save).not.toHaveBeenCalled();
+      expect(resultado).toEqual({
+        codigoCurto: urlExistente.codigoCurto,
+        urlEncurtadaCompleta: `${expectedBaseUrl}/${urlExistente.codigoCurto}`,
+        urlOriginal: urlExistente.urlOriginal,
+      });
+    });
+
+    it('deve reutilizar URL existente para utilizador autenticado', async () => {
+      const urlExistente = {
+        id: 'uuid-existente-auth',
+        urlOriginal: encurtarUrlDto.urlOriginal,
+        codigoCurto: 'authExt',
+        cliques: 5,
+        usuarioId: usuarioIdMock,
+      } as UrlEncurtadaEntity;
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(urlExistente);
+
+      const resultado = await service.encurtarUrl(
+        encurtarUrlDto,
+        usuarioIdMock,
+      );
+
+      expect(mockUrlEncurtadaRepository_findOne).toHaveBeenCalledWith({
         where: {
           urlOriginal: encurtarUrlDto.urlOriginal,
           usuarioId: usuarioIdMock,
         },
       });
       expect(
-        mockGeradorDeCodigoService.gerarCodigoUnico,
+        mockGeradorDeCodigoService_gerarCodigoUnico,
       ).not.toHaveBeenCalled();
-      expect(resultadoAutenticado).toEqual(resultadoEsperadoComUsuario);
+      expect(resultado).toEqual({
+        codigoCurto: urlExistente.codigoCurto,
+        urlEncurtadaCompleta: `${expectedBaseUrl}/${urlExistente.codigoCurto}`,
+        urlOriginal: urlExistente.urlOriginal,
+      });
     });
 
-    it('deve lançar InternalServerErrorException se gerarCodigoUnico falhar (quando a URL não existe)', async () => {
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-      mockGeradorDeCodigoService.gerarCodigoUnico.mockRejectedValue(
-        new Error('Falha crítica na geração'),
+    it('deve lançar InternalServerErrorException se gerarCodigoUnico falhar', async () => {
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(null);
+      mockGeradorDeCodigoService_gerarCodigoUnico.mockRejectedValue(
+        new Error('Falha ao gerar'),
       );
-
       await expect(service.encurtarUrl(encurtarUrlDto)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
 
-    it('deve lançar ConflictException se ocorrer colisão tardia de código ao salvar (quando a URL não existe)', async () => {
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-      mockGeradorDeCodigoService.gerarCodigoUnico.mockResolvedValue(
+    it('deve lançar ConflictException para colisão tardia de código ao salvar', async () => {
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(null);
+      mockGeradorDeCodigoService_gerarCodigoUnico.mockResolvedValue(
         codigoGeradoMock,
       );
-      mockUrlEncurtadaRepository.create.mockReturnValue(
+      mockUrlEncurtadaRepository_create.mockReturnValue(
         {} as UrlEncurtadaEntity,
       );
-      const erroConstraint = {
-        code: '23505',
-        detail: 'Key (codigo_curto)=(tst123) already exists.',
-      };
-      mockUrlEncurtadaRepository.save.mockRejectedValue(erroConstraint);
+      const erroDb = { code: '23505', detail: 'contém (codigo_curto)' };
+      mockUrlEncurtadaRepository_save.mockRejectedValue(erroDb);
 
       await expect(service.encurtarUrl(encurtarUrlDto)).rejects.toThrow(
         ConflictException,
       );
     });
 
-    it('deve lançar InternalServerErrorException para outros erros ao salvar (quando a URL não existe)', async () => {
-      mockUrlEncurtadaRepository.findOne.mockResolvedValue(null);
-      mockGeradorDeCodigoService.gerarCodigoUnico.mockResolvedValue(
+    it('deve lançar InternalServerErrorException para outros erros de save', async () => {
+      mockUrlEncurtadaRepository_findOne.mockResolvedValue(null);
+      mockGeradorDeCodigoService_gerarCodigoUnico.mockResolvedValue(
         codigoGeradoMock,
       );
-      mockUrlEncurtadaRepository.create.mockReturnValue(
+      mockUrlEncurtadaRepository_create.mockReturnValue(
         {} as UrlEncurtadaEntity,
       );
-      mockUrlEncurtadaRepository.save.mockRejectedValue(
-        new Error('Outra falha no banco'),
+      mockUrlEncurtadaRepository_save.mockRejectedValue(
+        new Error('Outro erro DB'),
       );
 
       await expect(service.encurtarUrl(encurtarUrlDto)).rejects.toThrow(

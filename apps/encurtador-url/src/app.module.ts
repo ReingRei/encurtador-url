@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CoreConfigModule } from '@app/core-config';
 import { DatabaseModule } from '@app/database';
+import { JwtStrategy } from '@app/common/auth/jwt.strategy';
 
 @Module({
   imports: [
@@ -15,7 +16,6 @@ import { DatabaseModule } from '@app/database';
     ]),
     CoreConfigModule,
     DatabaseModule,
-    // Importando o módulo de encurtador de URL
     EncurtadorUrlModule,
   ],
   controllers: [],
@@ -24,6 +24,7 @@ import { DatabaseModule } from '@app/database';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    JwtStrategy,
   ],
 })
 export class AppModule {}

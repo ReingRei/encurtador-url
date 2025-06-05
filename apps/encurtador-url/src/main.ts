@@ -2,14 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { CoreConfigService } from '@app/core-config';
-import { AutenticacaoModule } from 'apps/autenticacao/src/autenticacao.module';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AutenticacaoModule);
+  const app = await NestFactory.create(AppModule);
   const logger = new Logger('BootstrapEncurtadorUrl');
 
   const coreConfigService = app.get(CoreConfigService);
-  const port = coreConfigService.portAutenticacao;
+  const port = coreConfigService.portEncurtador;
   const nodeEnv = coreConfigService.nodeEnv;
   logger.log(`Ambiente de execução: ${nodeEnv}`);
   app.setGlobalPrefix('api');
@@ -22,16 +22,12 @@ async function bootstrap() {
   );
 
   const configSwagger = new DocumentBuilder()
-    .setTitle('API Encurtador de URL - Teddy Open Finance')
+    .setTitle('API Encurtador de URL')
     .setDescription(
       'Documentação da API responsável pelo encurtamento e gestão de URLs.',
     )
     .setVersion('0.2.0')
-    .addTag('encurtador', 'Operações relacionadas ao encurtamento de URLs')
-    .addTag(
-      'redirecionamento',
-      'Operações de redirecionamento de URLs encurtadas',
-    )
+    .addTag('Encurtador', 'Operações relacionadas ao encurtamento de URLs')
     .addBearerAuth(
       {
         type: 'http',

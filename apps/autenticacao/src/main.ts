@@ -27,7 +27,7 @@ async function bootstrap() {
       'Documentação da API responsável pelo cadastro e login de usuários.',
     )
     .setVersion('1.0')
-    .addTag('autenticacao', 'Operações relacionadas à autenticação de usuários')
+    .addTag('Autenticacao', 'Operações relacionadas à autenticação de usuários')
     .addBearerAuth(
       {
         type: 'http',
