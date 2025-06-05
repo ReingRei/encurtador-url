@@ -119,3 +119,22 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
     - Redirecionar o usuário para a URL original.
     - Tratar casos de URLs não encontradas ou códigos inválidos.
   - Adicionados testes unitários abrangentes para `RedirecionarController` e `RedirecionarService`, cobrindo os principais fluxos e cenários de erro.
+
+## [0.5.0] - 2025-06-05 (Configuração Completa do Docker Compose e Documentação)
+### Adicionado 
+- Configuração completa do `docker-compose.yml` para orquestrar todos os serviços da aplicação (autenticacao, encurtador-url, redirecionar) e a base de dados PostgreSQL, facilitando a subida do ambiente de desenvolvimento completo.
+- Dockerfile otimizado para as aplicações NestJS em monorepo, suportando desenvolvimento com hot-reloading.
+- Documentação abrangente do projeto no `README.md`, incluindo:
+  - Visão geral da arquitetura e funcionalidades.
+  - Instruções detalhadas para configuração do ambiente e execução com Docker Compose.
+  - Estrutura do projeto.
+  - Scripts NPM importantes.
+  - Considerações sobre versões de Node.js.
+  - Estratégia de testes e CI com GitHub Actions.
+  - Discussão sobre observabilidade.
+  - Análise detalhada sobre escalabilidade vertical (design primário) e pontos de melhoria para escalabilidade horizontal (visão futura).
+  - Sugestões para funcionalidades futuras.
+### Melhorado
+- Refinamento das configurações de ambiente (.env) para maior clareza e flexibilidade com as portas das aplicações.
+- Instruções de execução e acesso às aplicações e documentação Swagger no README.
+
