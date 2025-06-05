@@ -105,3 +105,17 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 - O endpoint POST /api/encurtador agora utiliza OptionalAuthGuard para permitir tanto requisições anônimas quanto autenticadas, associando a URL ao usuarioId se um token válido for fornecido.
 
+## [0.4.0] - 2025-06-06 (Módulo de Redirecionamento de URL)
+
+### Adicionado
+
+- **Módulo de Redirecionamento de URL (redirecionar):**
+  - Implementada a funcionalidade completa para redirecionar códigos curtos para suas URLs originais.
+  - Configurada a rota `GET /api/r/:codigoCurto` no `RedirecionarController` para receber as requisições de redirecionamento.
+  - Desenvolvida a lógica no `RedirecionarService` para:
+    - Validar o formato do código curto.
+    - Buscar a URL original correspondente ao código curto no banco de dados.
+    - Incrementar o contador de cliques para a URL encontrada.
+    - Redirecionar o usuário para a URL original.
+    - Tratar casos de URLs não encontradas ou códigos inválidos.
+  - Adicionados testes unitários abrangentes para `RedirecionarController` e `RedirecionarService`, cobrindo os principais fluxos e cenários de erro.
