@@ -81,3 +81,27 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 * Configuração do `ThrottlerModule` global para a aplicação `encurtador-url` com um limite de 10 requisições por minuto por IP.
 * Atualização da entidade `UsuarioEntity` (se necessário para o relacionamento, embora o foco aqui seja anónimo).
+
+## [0.3.0] - 2025-06-05 (Operações do Encurtador para Usuários Autenticados)
+
+### Adicionado
+
+- **Operações de Gerenciamento de URLs para Usuários Autenticados no Módulo Encurtador:**
+  - Endpoint `GET /api/encurtador/minhas-urls` para listar todas as URLs encurtadas pelo usuário autenticado, com suporte a paginação (parâmetros `pagina` e `limite`).
+    - Retorna `MinhasUrlsPaginadasRespostaDto` com os dados e meta informações da paginação.
+  - Endpoint `PATCH /api/encurtador/:idUrl` para o usuário autenticado atualizar o endereço de destino (URL original) de uma URL encurtada que lhe pertence.
+    - Utiliza `AtualizarUrlDto` para os dados de entrada.
+    - Retorna `UrlEncurtadaDetalhesDto` com os dados atualizados.
+  - Endpoint `DELETE /api/encurtador/:idUrl` para o usuário autenticado excluir logicamente uma URL encurtada que lhe pertence.
+    - Retorna `MensagemRespostaDto` confirmando a exclusão.
+  - Todos os endpoints acima são protegidos com `AuthGuard('jwt')` e requerem um Bearer Token JWT válido.
+  - Lógica no `EncurtadorUrlService` ajustada para receber e associar o `usuarioId` ao criar uma URL encurtada se o usuário estiver autenticado (através do `OptionalAuthGuard` no endpoint de criação).
+  - Criação do `GerenciadorMinhasUrlsService` para encapsular a lógica de negócio específica das operações de URLs de usuários autenticados.
+  - DTOs adicionais (`ListarMinhasUrlsQueryDto`, `MinhasUrlsPaginadasRespostaDto`, `AtualizarUrlDto`) e reutilização do `UrlEncurtadaDetalhesDto` para tipagem e validação.
+  - Documentação Swagger atualizada para os novos endpoints e requisitos de autenticação (`@ApiBearerAuth`, `@ApiQuery`, `@ApiParam`, etc.).
+  - Testes unitários para os novos métodos no `GerenciadorMinhasUrlsService` e para os novos endpoints no `EncurtadorUrlController`.
+
+### Alterado
+
+- O endpoint POST /api/encurtador agora utiliza OptionalAuthGuard para permitir tanto requisições anônimas quanto autenticadas, associando a URL ao usuarioId se um token válido for fornecido.
+
