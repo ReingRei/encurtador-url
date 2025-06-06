@@ -339,4 +339,4 @@ Para ambientes de produção, seria imperativo expandir estas capacidades com so
 - **LinkedIn:** [https://www.linkedin.com/in/reinaldo-zenelato-bb5754200/](https://www.linkedin.com/in/reinaldo-zenelato-bb5754200/)
 - **GitHub:** [https://github.com/ReingRei](https://github.com/ReingRei)
 
-**Link do Repositório do Projeto:** [https://github.com/ReingRei/encurtador-url](https://github.com/ReingRei/encurtador-url) (Substitua pelo link do seu projeto)
+**Link do Repositório do Projeto:** [https://github.com/ReingRei/encurtador-url](https://github.com/ReingRei/encurtador-url)
